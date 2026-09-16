@@ -259,13 +259,7 @@ streamlit run web/app.py
 - **报告导出**：一键下载 **Markdown**（零依赖，永远可用）或 **PDF** 完整分析报告（PDF 自动适配 Windows/macOS/Linux 中文字体）
 - **历史记录**：自动保存并展示所有历史分析
 
-### 截图
 
-<p align="center">
-  <img src="assets/web-ui-welcome.png" width="80%" alt="Web UI 欢迎页"/>
-</p>
-
----
 
 ## 配置说明
 
@@ -332,83 +326,7 @@ config = {
 
 ---
 
-## 常见问题排错
 
-**Q: 用 DeepSeek/通义/智谱，却报 `OpenAIError: The api_key client option must be set ... OPENAI_API_KEY`？**
-每个供应商用**各自的环境变量**，不是 OPENAI_API_KEY：DeepSeek=`DEEPSEEK_API_KEY`、通义=`DASHSCOPE_API_KEY`、智谱=`ZHIPU_API_KEY`、MiniMax=`MINIMAX_API_KEY`、xAI=`XAI_API_KEY`、OpenRouter=`OPENROUTER_API_KEY`、OpenAI 兼容（自定义）=`OPENAI_COMPATIBLE_API_KEY`。在项目根目录 `.env` 里设置对应变量后**重启**程序。（v0.2.12 起缺 key 会直接提示该用哪个变量名。）
-
-**Q: 想接一个 OpenAI 兼容的第三方网关/中继（9Router、AI Router、自建代理），自定义 base_url + model？**
-用 **「OpenAI 兼容（自定义 base_url）」** 这一档（v0.2.20 新增）。Web 侧栏「LLM 供应商」选它 →「快速/深度思考模型 ID」手动填你网关支持的 model 名 →「API Base URL」填你的网关地址（如 `https://your-relay.example/v1`）→ `.env` 里设 `OPENAI_COMPATIBLE_API_KEY=你的key`（也接受 `OPENAI_API_KEY`）。CLI 方式选 `OpenAI-Compatible` 后会提示输入 Base URL。它走标准 Chat Completions（非 OpenAI Responses API，兼容性最好），model 名自由填、不受内置清单限制。配置方式等价：`llm_provider="openai_compatible"` + `backend_url="<你的网关>"` + `deep_think_llm/quick_think_llm="<你的model>"`。
-
-**Q: 明明装了 Python 3.12/3.14，`pip install -e .` 却报 `requires a different Python: 3.9.6 not in '>=3.10'`？**
-报错里的 **3.9.6 就是当前这个 `pip` 绑定的解释器版本**——你装的新版本没被它用上（macOS 自带的 `pip3` 常指向系统 3.9）。先确认是哪个解释器在跑：
-
-```bash
-pip3 -V                    # 末尾括号里就是它绑定的 Python
-python3.12 -m pip -V       # 换成你想用的版本再看
-```
-
-用 `python -m pip` 的写法就不会认错人，推荐配合虚拟环境：
-
-```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-python -m pip install -e .
-```
-
-Windows 用 `py -3.12 -m venv .venv` + `.venv\Scripts\activate`。（#92）
-
-**Q: 报告写到一半就结束了，上下文明明没超长？**
-撞的是**输出**上限，不是上下文上限——模型一次回复能吐多少 token 是另一个限制。v0.4.1 起，这种截断会在日志里明确告诉你（`因为达到输出上限被截断`），不再是默默给你半篇报告。调大即可：config 里设 `max_tokens`（例如 `"max_tokens": 16000`），或设环境变量 `TRADINGAGENTS_MAX_TOKENS=16000`。
-
-另外，用 **Kimi 等第三方模型名走 `anthropic` 通道**时，langchain 认不出模型名，会默认一个很小的输出上限（旧版本表现为报告普遍偏短）。v0.4.1 起这种情况会自动放宽到 8192，仍不够就显式配 `max_tokens`。#91
-
-**Q: 接 Kimi 报 `401 invalid x-api-key`？**
-说明请求发到了 **Anthropic 官方**而不是 Kimi——光给 key 没给端点。两个都要给：
-
-```bash
-ANTHROPIC_API_KEY=你的kimi-token
-ANTHROPIC_BASE_URL=https://api.kimi.com/coding/   # 或在 config 里写 backend_url
-```
-
-注意 **`ANTHROPIC_AUTH_TOKEN` 在本项目里不生效**（那是 Claude Code CLI 的写法），本项目走 langchain，只读 `ANTHROPIC_API_KEY`。v0.4.1 起，用非 Claude 模型名却没配端点会**在启动时**直接告诉你缺什么，而不是等 Anthropic 回一句看不懂的 401。#89
-
-**Q: 导出 PDF 报 `UnicodeEncodeError: 'latin-1' codec can't encode`？**
-你的环境里装了**旧版 `fpdf`（pyfpdf）**，它和本项目用的 `fpdf2` 都以 `fpdf` 名称导入、互相冲突。执行：`pip uninstall -y fpdf && pip install "fpdf2>=2.8.6"`。实在不行可改用「下载 Markdown」导出（零依赖，永远可用）。
-
-**Q: Docker 里怎么跑 Web UI？容器启动报 `Invalid value: File does not exist: web/app.py`？**
-用 compose 里的 `web` 服务：`docker compose up web`，然后开 http://localhost:8501 。
-
-报这个错通常是因为命令写成了 `streamlit run web/app.py`——这条**依赖当前工作目录**，工作目录不对就找不到文件。正确的入口是 `tradingagents-web`（即 `web.launch:main`），它按 `__file__` 解析 `app.py` 的绝对路径，跟工作目录无关。本地跑同理，装完后直接 `tradingagents-web` 最稳。
-
-**Q: Docker 里导出 PDF 报「未找到中文字体」？**
-v0.2.12 起 Dockerfile 已内置 `fonts-noto-cjk`，重新 `docker build` 即可。旧镜像可临时 `apt install fonts-noto-cjk`，或改用 Markdown 导出。
-
-**Q: Docker 启动报 `[Errno 13] Permission denied: /home/appuser/.tradingagents/cache`？**
-旧版镜像里没预建数据目录，`docker-compose` 的命名卷挂上来时被 Docker 建成 `root` 属主，而容器内进程以 `appuser` 运行、写不进去。v0.2.14 起 Dockerfile 已预建 `/home/appuser/.tradingagents`（cache/logs/memory）并归属 appuser，命名卷会继承该属主。**升级方式**：`git pull` 后 `docker compose build --no-cache` 重建镜像；若想保留旧数据卷可先 `docker run --rm -v tradingagents_data:/d alpine chown -R 1000:1000 /d` 修正属主，否则 `docker volume rm tradingagents_data` 后重建即可。
-
-**Q: 部分分析师报告（情绪/新闻/基本面/政策/游资/解禁）空白不显示？**
-这些报告由对应 Analyst 调用数据工具后生成，**空报告会被自动跳过不显示**。数据源本身是健康的（腾讯/mootdx/同花顺/东财实测出数）；报告为空通常是**所选模型 tool-call 能力弱**（如部分 deepseek/minimax 轻量模型不稳定地调用工具）。建议换用 tool-call 更稳的模型（deepseek-chat / 通义 / GLM-4 / Claude / GPT 等），或重试。
-
-**Q: 为什么没有 `[google]` extra 了？装 Gemini 报 httpx 冲突怎么办？**
-**v0.3.1 起移除了 `[google]` extra**（[#87](https://github.com/simonlin1212/TradingAgents-astock/issues/87)）。原因：`langchain-google-genai>=4.0.0` 要求 `google-genai>=1.53.0`，而该区间内**每一个** google-genai 版本都要求 `httpx>=0.28.1`；mootdx（核心 A 股数据源）钉死 `httpx>=0.25,<0.26`。**没有任何版本组合能同时满足，冲突是结构性的。**
-
-真正的问题是：**uv 构建的是覆盖所有 extra 的 universal lock**，所以只要这个 extra 存在，`uv sync` 就对**所有人**失败——包括从不用 Gemini 的用户。把 extra 留空更糟（`pip install .[google]` 会静默什么都不装，用户以为装好了）。所以直接移除，并在 `google_client.py` 导入失败时给出可直接执行的安装命令。
-
-需要 Gemini 时显式安装（**mootdx 取行情走 TCP 协议、运行时根本不 import httpx**，所以抬高 httpx 实测不影响取数）：
-
-```bash
-pip install --no-deps "langchain-google-genai>=4.0.0"
-pip install "google-genai>=1.53.0" "httpx>=0.28.1"
-```
-
-或把 Gemini 与数据层分到不同 venv。最省心是用 DeepSeek / MiniMax / 通义 / OpenAI 兼容中继等，完全不涉及这个冲突。
-
-另澄清：**litellm / mcp 不是本项目的依赖**——报错里若提到它们，是你环境里其它包带来的。
-
-**Q: 不进 CLI 交互，怎么批量跑多只标的、拿到和 CLI 一样的完整报告？**
-看 `examples/run_cases.py`：它复用 CLI 的 `save_report_to_disk()`，每只标的输出与 CLI 一致的 `complete_report.md`（分析师 / 研究 / 交易 / 风险 / 组合五个分区）+ 一份字段齐全的 `summary.json`。用法：`uv run python examples/run_cases.py`（跑全部）或 `uv run python examples/run_cases.py 688017`（单只）；改 `build_config()` 切换 provider/model。
-
----
 
 ## 项目结构
 
