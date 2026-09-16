@@ -18,10 +18,10 @@ def _strip_think(text: str) -> str:
 def _signal_style(signal: str) -> tuple[str, str]:
     s = signal.upper()
     if "BUY" in s:
-        return "#22c55e", "买入"
+        return "#16865d", "买入"
     if "SELL" in s:
-        return "#ef4444", "卖出"
-    return "#fbbf24", "持有"
+        return "#d64545", "卖出"
+    return "#a66b00", "持有"
 
 
 _ANALYST_SECTIONS = [
@@ -60,23 +60,23 @@ def render_report(
     stats_html = ""
     if elapsed is not None:
         m, s = divmod(int(elapsed), 60)
-        stats_html = f'<div style="font-size:0.9rem; color:#888; margin-top:0.3rem;">耗时 {m}:{s:02d}</div>'
+        stats_html = f'<div style="font-size:0.9rem; color:#657184; margin-top:0.3rem;">耗时 {m}:{s:02d}</div>'
 
     st.markdown(
         f"""
         <div style="
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 1px solid #333;
-            border-radius: 16px;
+            background: linear-gradient(135deg, #edf5ff 0%, #f0efff 100%);
+            border: 1px solid rgba(22, 111, 247, 0.28);
+            border-radius: 8px;
             padding: 2rem;
             text-align: center;
             margin: 1rem 0 2rem;
         ">
-            <div style="font-size:0.9rem; color:#888; letter-spacing:2px;">TRADING SIGNAL</div>
+            <div style="font-size:0.9rem; color:#166ff7; letter-spacing:2px;">TRADING SIGNAL</div>
             <div style="font-size:3.5rem; font-weight:900; color:{color}; margin:0.3rem 0;">
                 {signal.upper()}
             </div>
-            <div style="font-size:1.2rem; color:#f5f1eb;">
+            <div style="font-size:1.2rem; color:#111925;">
                 {ticker_label} · {trade_date}
             </div>
             {stats_html}

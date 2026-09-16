@@ -38,13 +38,25 @@ def _load_saved_llm_config() -> None:
     try:
         cfg = json.loads(_LLM_CONFIG_PATH.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
-        return
-    provider_key = cfg.get("llm_provider", "")
+        cfg = {}
+    quick_provider = cfg.get(
+        "quick_think_provider",
+        cfg.get("llm_provider", DEFAULT_CONFIG["quick_think_provider"]),
+    )
+    deep_provider = cfg.get(
+        "deep_think_provider",
+        cfg.get("llm_provider", DEFAULT_CONFIG["deep_think_provider"]),
+    )
     try:
-        idx = _PROVIDER_KEYS.index(provider_key)
+        quick_idx = _PROVIDER_KEYS.index(quick_provider)
     except ValueError:
-        idx = 0
-    st.session_state.setdefault("llm_provider_idx", idx)
+        quick_idx = _PROVIDER_KEYS.index(DEFAULT_CONFIG["quick_think_provider"])
+    try:
+        deep_idx = _PROVIDER_KEYS.index(deep_provider)
+    except ValueError:
+        deep_idx = _PROVIDER_KEYS.index(DEFAULT_CONFIG["deep_think_provider"])
+    st.session_state.setdefault("quick_provider_idx", quick_idx)
+    st.session_state.setdefault("deep_provider_idx", deep_idx)
     st.session_state.setdefault("quick_model_idx", cfg.get("quick_model_idx", 0))
     st.session_state.setdefault("deep_model_idx", cfg.get("deep_model_idx", 0))
     st.session_state.setdefault("llm_base_url", cfg.get("llm_base_url", ""))
@@ -63,7 +75,14 @@ def _load_saved_llm_config() -> None:
 def _save_llm_config() -> None:
     """Persist current LLM config to disk (called before analysis)."""
     cfg = {
-        "llm_provider": st.session_state.get("llm_provider", "minimax"),
+        # Keep llm_provider for pre-dual-provider versions that read this file.
+        "llm_provider": st.session_state.get("quick_think_provider", DEFAULT_CONFIG["llm_provider"]),
+        "quick_think_provider": st.session_state.get(
+            "quick_think_provider", DEFAULT_CONFIG["quick_think_provider"]
+        ),
+        "deep_think_provider": st.session_state.get(
+            "deep_think_provider", DEFAULT_CONFIG["deep_think_provider"]
+        ),
         "quick_model_idx": st.session_state.get("quick_model_idx", 0),
         "deep_model_idx": st.session_state.get("deep_model_idx", 0),
         "llm_base_url": st.session_state.get("llm_base_url", ""),
@@ -198,58 +217,67 @@ def _render_analysis_controls(raw_ticker: str, trade_date_value: date) -> None:
         st.caption("正在停止并清空，收尾完成后可重新开始。")
 
 
-def _render_llm_config() -> None:
-    """Render LLM provider and model selection controls."""
+def _render_model_picker(
+    label: str,
+    provider: str,
+    mode: str,
+    index_key: str,
+    custom_key: str,
+) -> str:
+    if provider in MODEL_OPTIONS:
+        options = MODEL_OPTIONS[provider][mode]
+        labels = [option_label for option_label, _ in options]
+        values = [value for _, value in options]
+        model_idx = st.selectbox(
+            label,
+            range(len(options)),
+            format_func=lambda i: labels[i],
+            key=index_key,
+        )
+        model = values[model_idx]
+        if model != "custom":
+            return model
+    return st.text_input(f"{label} ID", key=custom_key)
 
-    provider_idx = st.selectbox(
-        "LLM 供应商",
+
+def _render_llm_config() -> None:
+    """Render independent provider and model controls for the two LLM tiers."""
+
+    quick_provider_idx = st.selectbox(
+        "快速思考供应商",
         range(len(_PROVIDERS)),
         format_func=lambda i: _PROVIDER_DISPLAY[i],
-        key="llm_provider_idx",
-        help="选择你配置了 API Key 的供应商",
+        key="quick_provider_idx",
+        help="7 个分析师、研究员、交易员和风控辩手使用的供应商",
     )
-    provider_key = _PROVIDER_KEYS[provider_idx]
-    st.session_state["llm_provider"] = provider_key
+    quick_provider = _PROVIDER_KEYS[quick_provider_idx]
+    st.session_state["quick_think_provider"] = quick_provider
+    st.session_state["llm_provider"] = quick_provider
+    st.session_state["quick_think_llm"] = _render_model_picker(
+        "快速思考模型", quick_provider, "quick", "quick_model_idx", "custom_quick_model"
+    )
 
-    if provider_key in MODEL_OPTIONS:
-        quick_options = MODEL_OPTIONS[provider_key]["quick"]
-        deep_options = MODEL_OPTIONS[provider_key]["deep"]
+    deep_provider_idx = st.selectbox(
+        "深度思考供应商",
+        range(len(_PROVIDERS)),
+        format_func=lambda i: _PROVIDER_DISPLAY[i],
+        key="deep_provider_idx",
+        help="Research Manager 和 Portfolio Manager 使用的供应商",
+    )
+    deep_provider = _PROVIDER_KEYS[deep_provider_idx]
+    st.session_state["deep_think_provider"] = deep_provider
+    st.session_state["deep_think_llm"] = _render_model_picker(
+        "深度思考模型", deep_provider, "deep", "deep_model_idx", "custom_deep_model"
+    )
 
-        quick_labels = [label for label, _ in quick_options]
-        quick_values = [value for _, value in quick_options]
-        deep_labels = [label for label, _ in deep_options]
-        deep_values = [value for _, value in deep_options]
-
-        quick_idx = st.selectbox(
-            "快速思考模型",
-            range(len(quick_options)),
-            format_func=lambda i: quick_labels[i],
-            key="quick_model_idx",
-            help="用于常规分析任务，速度优先",
-        )
-        st.session_state["quick_think_llm"] = quick_values[quick_idx]
-
-        deep_idx = st.selectbox(
-            "深度思考模型",
-            range(len(deep_options)),
-            format_func=lambda i: deep_labels[i],
-            key="deep_model_idx",
-            help="用于辩论/决策等需要深度推理的任务",
-        )
-        st.session_state["deep_think_llm"] = deep_values[deep_idx]
-    else:
-        custom_quick = st.text_input("快速思考模型 ID", key="custom_quick_model")
-        custom_deep = st.text_input("深度思考模型 ID", key="custom_deep_model")
-        st.session_state["quick_think_llm"] = custom_quick
-        st.session_state["deep_think_llm"] = custom_deep
-
-    base_url_required = provider_key == "openai_compatible"
+    base_url_required = "openai_compatible" in {quick_provider, deep_provider}
     st.text_input(
         "API Base URL（第三方/代理" + ("·必填" if base_url_required else "，可选") + "）",
         key="llm_base_url",
         placeholder="例: https://your-relay.example/v1",
         help=(
             "通过第三方中转/代理访问模型时填写网关地址；留空则用所选供应商的官方地址。"
+            "该地址会同时应用到快速与深度两档模型。"
             "API Key 仍从 .env 读取，每个供应商用各自的环境变量——"
             "OpenAI=OPENAI_API_KEY、DeepSeek=DEEPSEEK_API_KEY、"
             "通义=DASHSCOPE_API_KEY、智谱=ZHIPU_API_KEY、MiniMax=MINIMAX_API_KEY、"
@@ -317,12 +345,9 @@ def render_sidebar() -> None:
     st.markdown(
         """
         <div style="text-align:center; margin-bottom:1.5rem;">
-            <span style="font-size:2rem; font-weight:800; color:#ff5a1f;">Trading</span><span style="font-size:2rem; font-weight:800; color:#f5f1eb;">Agents</span><span style="font-size:2rem; font-weight:800; color:#f5f1eb;">-</span><span style="font-size:2rem; font-weight:800; color:#ff5a1f;">Astock</span>
-            <div style="font-size:0.85rem; color:#888; margin-top:0.2rem;">
+            <span style="font-size:2rem; font-weight:800; color:#166ff7;">智研</span><span style="font-size:2rem; font-weight:800; color:#111925;">A股</span>
+            <div style="font-size:0.85rem; color:#657184; margin-top:0.2rem;">
                 A股多Agent投研系统
-            </div>
-            <div style="font-size:0.7rem; color:#555; margin-top:0.3rem;">
-                by <a href="https://github.com/simonlin1212" style="color:#ff5a1f; text-decoration:none;">simonlin1212</a>
             </div>
         </div>
         """,

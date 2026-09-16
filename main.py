@@ -10,21 +10,15 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 load_dotenv()
 
-# ── MiniMax 示例（推荐）─────────────────────────────
 config = {
-    "llm_provider": "minimax",
-    "deep_think_llm": "MiniMax-M2.7",
-    "quick_think_llm": "MiniMax-M2.7-highspeed",
+    "quick_think_provider": "qwen",
+    "quick_think_llm": "qwen3.8-flash",
+    "quick_think_max_tokens": 131072,
+    "deep_think_provider": "deepseek",
+    "deep_think_llm": "deepseek-flash",
+    "deep_think_max_tokens": 393216,
     "output_language": "Chinese",
 }
-
-# ── DeepSeek 示例 ───────────────────────────────────
-# config = {
-#     "llm_provider": "deepseek",
-#     "deep_think_llm": "deepseek-chat",
-#     "quick_think_llm": "deepseek-chat",
-#     "output_language": "Chinese",
-# }
 
 if __name__ == "__main__":
     ta = TradingAgentsGraph(debug=True, config=config)

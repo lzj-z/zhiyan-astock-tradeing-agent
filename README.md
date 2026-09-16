@@ -222,21 +222,16 @@ BACKEND_URL=https://your-relay.example/v1   # 你的网关地址（也可在 Web
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
-# ── MiniMax 示例（推荐）─────────────────────────────
+# ── 双 LLM 示例：quick 走千问，deep 走 DeepSeek ──────
 config = {
-    "llm_provider": "minimax",
-    "deep_think_llm": "MiniMax-M2.7",
-    "quick_think_llm": "MiniMax-M2.7-highspeed",
+    "quick_think_provider": "qwen",
+    "quick_think_llm": "qwen3.8-flash",
+    "quick_think_max_tokens": 131072,
+    "deep_think_provider": "deepseek",
+    "deep_think_llm": "deepseek-flash",
+    "deep_think_max_tokens": 393216,
     "output_language": "Chinese",
 }
-
-# ── DeepSeek 示例 ───────────────────────────────────
-# config = {
-#     "llm_provider": "deepseek",
-#     "deep_think_llm": "deepseek-chat",
-#     "quick_think_llm": "deepseek-chat",
-#     "output_language": "Chinese",
-# }
 
 # ── Anthropic + Kimi 示例 ───────────────────────────
 # config = {
@@ -305,7 +300,7 @@ streamlit run web/app.py
 ### 功能
 
 - **配置记住**：侧栏选的供应商 / 模型 / Base URL / 订阅覆盖写入 `~/.tradingagents/llm_config.json`，重开标签页或重启后自动恢复（v0.5.17）
-- **模型自选**：侧边栏支持 10 个 LLM 供应商切换（MiniMax/DeepSeek/Qwen/GLM/OpenAI/Anthropic/Google/xAI/OpenRouter/Ollama），外加 **「OpenAI 兼容（自定义 base_url）」** 一档可接任意 OpenAI 兼容网关（9Router / AI Router / 自建代理）
+- **模型自选**：快速与深度两档模型可分别选择供应商和模型（MiniMax/DeepSeek/Qwen/GLM/OpenAI/Anthropic/Google/xAI/OpenRouter/Ollama），外加 **「OpenAI 兼容（自定义 base_url）」** 一档可接任意 OpenAI 兼容网关（9Router / AI Router / 自建代理）
 - **一键分析**：输入 6 位 A 股代码 + 分析日期 +「数据起始日期」（默认本月第一天，可自定义技术分析回溯区间，支持按月/自定义时段分析），点击「开始分析」
 - **实时进度**：12 阶段 pipeline 实时显示（7 分析师 → 质量门控 → 辩论 → 风控 → 决策），所有已完成阶段的报告均可展开查看
 - **完整报告**：信号卡片（Buy/Hold/Sell）、7 份分析师报告、多空辩论、风控评估
@@ -326,12 +321,16 @@ streamlit run web/app.py
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `llm_provider` | `"minimax"` | LLM 提供商：`minimax` / `deepseek` / `qwen` / `glm` / `openai` / `anthropic` / `google` / `xai` / `ollama` |
-| `deep_think_llm` | `"MiniMax-M2.7"` | Research Manager + Portfolio Manager 用的模型 |
-| `quick_think_llm` | `"MiniMax-M2.7-highspeed"` | 所有 Analyst / Researcher / Trader 用的模型 |
+| `llm_provider` | `"qwen"` | 兼容旧配置的默认 provider；未设置下方分档 provider 时两档都沿用它 |
+| `quick_think_provider` | `"qwen"` | 所有 Analyst / Researcher / Trader / Risk Debater 的 provider |
+| `quick_think_llm` | `"qwen3.8-flash"` | quick 档模型 |
+| `quick_think_max_tokens` | `131072` | quick 档单次回复最大输出 token；设置时优先于 `max_tokens` |
+| `deep_think_provider` | `"deepseek"` | Research Manager + Portfolio Manager 的 provider |
+| `deep_think_llm` | `"deepseek-flash"` | deep 档模型 |
+| `deep_think_max_tokens` | `393216` | deep 档单次回复最大输出 token；设置时优先于 `max_tokens` |
 | `backend_url` | `None` | 自定义 API 端点 / 第三方中转网关。可在 Web UI 侧边栏填写，或用 `.env` 的 `BACKEND_URL`；方便国内通过代理访问 Claude / OpenAI |
 | `role_llms` | `{}` | **可选**：给单个角色指定另一家模型（如多空辩手用不同厂商），留空 = 全部沿用 quick/deep 两档，行为不变。见下方「分角色模型」 #39 |
-| `max_tokens` | `None` | 单次回复的最大输出 token 数。`None` = 用 provider 默认值。**报告写到一半就断，先调这里**（不是上下文超长）；也可用环境变量 `TRADINGAGENTS_MAX_TOKENS`。#91 |
+| `max_tokens` | `None` | 两档都未设置分档上限时的通用单次回复最大输出 token 数。**报告写到一半就断，先调这里**（不是上下文超长）；也可用环境变量 `TRADINGAGENTS_MAX_TOKENS`。#91 |
 | `output_language` | `"Chinese"` | 报告输出语言（内部辩论始终英文） |
 | `market_lookback_days` | `None` | 技术分析回溯天数（分析区间 = 起始日期 → 分析日期）。Web/CLI 由「数据起始日期」自动算出；`None` = 模型自选（约 30 天）。#16 |
 | `max_debate_rounds` | `1` | Bull vs Bear 辩论轮数 |

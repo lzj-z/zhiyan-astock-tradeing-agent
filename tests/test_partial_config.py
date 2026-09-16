@@ -7,6 +7,8 @@ def test_partial_config_is_merged_over_defaults():
     partial = {"llm_provider": "minimax", "deep_think_llm": "MiniMax-M2.7", "output_language": "Chinese"}
     merged = merge_config(partial)
     assert merged["llm_provider"] == "minimax"
+    assert merged["quick_think_provider"] == "minimax"
+    assert merged["deep_think_provider"] == "minimax"
     assert merged["deep_think_llm"] == "MiniMax-M2.7"
     assert merged["output_language"] == "Chinese"
     # README 示例没给的键必须从默认值补齐，__init__ 紧接着就要用它们建目录

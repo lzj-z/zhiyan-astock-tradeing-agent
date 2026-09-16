@@ -28,18 +28,22 @@ def test_config_file_lives_under_user_home():
 @pytest.mark.unit
 def test_save_creates_parent_dir_and_roundtrips_scope(fake_st):
     fake_st.session_state.update({
-        "llm_provider": "deepseek", "quick_model_idx": 2, "deep_model_idx": 1,
+        "quick_think_provider": "qwen", "deep_think_provider": "deepseek",
+        "quick_model_idx": 2, "deep_model_idx": 1,
         "llm_base_url": "https://relay.example/v1", "subscription_scope": "deep",
         "agent_sdk_model": "opus", "custom_quick_model": "my-q",
     })
     sidebar._save_llm_config()
     saved = json.loads(sidebar._LLM_CONFIG_PATH.read_text())
-    assert saved["llm_provider"] == "deepseek" and saved["subscription_scope"] == "deep"
+    assert saved["quick_think_provider"] == "qwen"
+    assert saved["deep_think_provider"] == "deepseek"
+    assert saved["subscription_scope"] == "deep"
 
     fake_st.session_state.clear()
     sidebar._load_saved_llm_config()
     ss = fake_st.session_state
-    assert ss["llm_provider_idx"] == sidebar._PROVIDER_KEYS.index("deepseek")
+    assert ss["quick_provider_idx"] == sidebar._PROVIDER_KEYS.index("qwen")
+    assert ss["deep_provider_idx"] == sidebar._PROVIDER_KEYS.index("deepseek")
     assert ss["quick_model_idx"] == 2 and ss["deep_model_idx"] == 1
     assert ss["llm_base_url"] == "https://relay.example/v1"
     # selectbox 的 widget 键是 subscription_scope_idx —— 只回填派生值等于没恢复
@@ -51,10 +55,12 @@ def test_save_creates_parent_dir_and_roundtrips_scope(fake_st):
 def test_load_does_not_override_in_session_choice(fake_st):
     sidebar._LLM_CONFIG_PATH.parent.mkdir(parents=True)
     sidebar._LLM_CONFIG_PATH.write_text(json.dumps({"llm_provider": "openai", "subscription_scope": "all"}))
-    fake_st.session_state["llm_provider_idx"] = 0
+    fake_st.session_state["quick_provider_idx"] = 0
+    fake_st.session_state["deep_provider_idx"] = 0
     fake_st.session_state["subscription_scope_idx"] = 0
     sidebar._load_saved_llm_config()
-    assert fake_st.session_state["llm_provider_idx"] == 0
+    assert fake_st.session_state["quick_provider_idx"] == 0
+    assert fake_st.session_state["deep_provider_idx"] == 0
     assert fake_st.session_state["subscription_scope_idx"] == 0
 
 
@@ -63,7 +69,8 @@ def test_unknown_scope_or_provider_falls_back_to_first(fake_st):
     sidebar._LLM_CONFIG_PATH.parent.mkdir(parents=True)
     sidebar._LLM_CONFIG_PATH.write_text(json.dumps({"llm_provider": "gone", "subscription_scope": "weird"}))
     sidebar._load_saved_llm_config()
-    assert fake_st.session_state["llm_provider_idx"] == 0
+    assert fake_st.session_state["quick_provider_idx"] == sidebar._PROVIDER_KEYS.index("qwen")
+    assert fake_st.session_state["deep_provider_idx"] == sidebar._PROVIDER_KEYS.index("deepseek")
     assert fake_st.session_state["subscription_scope_idx"] == 0
 
 

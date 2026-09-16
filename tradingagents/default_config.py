@@ -12,9 +12,14 @@ DEFAULT_CONFIG = {
     # Pending entries are never pruned. None disables rotation entirely.
     "memory_log_max_entries": None,
     # LLM settings
-    "llm_provider": "openai",
-    "deep_think_llm": "gpt-5.4",
-    "quick_think_llm": "gpt-5.4-mini",
+    # ``llm_provider`` remains the fallback for legacy one-provider configs.
+    # The two tier-specific provider keys let quick and deep nodes use different
+    # vendors without routing one vendor's model ID to the other vendor's API.
+    "llm_provider": "qwen",
+    "quick_think_provider": "qwen",
+    "deep_think_provider": "deepseek",
+    "deep_think_llm": "deepseek-flash",
+    "quick_think_llm": "qwen3.8-flash",
     # When None, each provider's client falls back to its own default endpoint
     # (api.openai.com for OpenAI, generativelanguage.googleapis.com for Gemini, ...).
     # The CLI overrides this per provider when the user picks one. Keeping a
@@ -31,6 +36,10 @@ DEFAULT_CONFIG = {
         if os.environ.get("TRADINGAGENTS_MAX_TOKENS")
         else None
     ),
+    # Tier-specific limits override ``max_tokens`` when set. The configured
+    # defaults are each provider's current maximum output size.
+    "quick_think_max_tokens": 131072,
+    "deep_think_max_tokens": 393216,
     # 可选：给单个角色单独指定模型（#39）。留空 = 全部角色沿用上面的
     # quick/deep 两档，行为与以前完全一致——大多数人只有一家模型，不需要碰这里。
     #

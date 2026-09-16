@@ -73,80 +73,138 @@ st.markdown(
     }
 
     html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, sans-serif;
+        font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
     .stApp {
-        background: #0a0a0a;
+        background: #ffffff;
+        color: #111925;
     }
     section[data-testid="stSidebar"] {
-        background: #0f0f0f;
-        border-right: 1px solid #1a1a1a;
+        background: #f7f9fc;
+        border-right: 1px solid #dbe2ec;
     }
-    .stMetric label { color: #888 !important; font-size: 0.8rem !important; }
+    .stMetric label { color: #657184 !important; font-size: 0.8rem !important; }
     .stMetric [data-testid="stMetricValue"] {
-        color: #ff5a1f !important;
+        color: #166ff7 !important;
         font-weight: 700 !important;
     }
     .stProgress > div > div > div {
-        background: linear-gradient(90deg, #ff5a1f, #ff8c42) !important;
+        background: #166ff7 !important;
     }
     button[kind="primary"] {
-        background: linear-gradient(135deg, #ff5a1f, #ff8c42) !important;
-        border: none !important;
+        background: #111925 !important;
+        border: 1px solid #111925 !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
-        letter-spacing: 0.05em !important;
-        box-shadow: 0 4px 15px rgba(255,90,31,0.3) !important;
+        box-shadow: 0 8px 20px rgba(17, 25, 37, 0.14) !important;
         transition: all 0.2s ease !important;
     }
     button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #e04d15, #ff5a1f) !important;
-        box-shadow: 0 6px 20px rgba(255,90,31,0.4) !important;
+        background: #166ff7 !important;
+        border-color: #166ff7 !important;
+        box-shadow: 0 10px 24px rgba(22, 111, 247, 0.2) !important;
         transform: translateY(-1px) !important;
+    }
+    button[kind="primary"]:disabled {
+        background: #a7b1bf !important;
+        border-color: #a7b1bf !important;
+        box-shadow: none !important;
+        opacity: 0.65 !important;
     }
     /* Secondary buttons (history items) */
     button[kind="secondary"] {
-        background: #161616 !important;
-        border: 1px solid #2a2a2a !important;
-        color: #ccc !important;
+        background: #ffffff !important;
+        border: 1px solid #dbe2ec !important;
+        color: #2d3848 !important;
         transition: all 0.2s ease !important;
     }
     button[kind="secondary"]:hover {
-        background: #1e1e1e !important;
-        border-color: #ff5a1f !important;
-        color: #ff5a1f !important;
+        background: #edf5ff !important;
+        border-color: #166ff7 !important;
+        color: #166ff7 !important;
     }
     .stExpander {
-        border: 1px solid #222 !important;
+        background: #ffffff !important;
+        border: 1px solid #dbe2ec !important;
         border-radius: 8px !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #888 !important;
+        color: #657184 !important;
     }
     .stTabs [aria-selected="true"] {
-        color: #ff5a1f !important;
-        border-bottom-color: #ff5a1f !important;
+        color: #166ff7 !important;
+        border-bottom-color: #166ff7 !important;
     }
     div[data-testid="stDownloadButton"] button {
-        background: #1a1a2e !important;
-        border: 1px solid #ff5a1f !important;
-        color: #ff5a1f !important;
+        background: #ffffff !important;
+        border: 1px solid #166ff7 !important;
+        color: #166ff7 !important;
     }
     /* Text input styling */
     input[data-testid="stTextInputRootElement"] input,
     .stTextInput input {
-        background: #161616 !important;
-        border-color: #2a2a2a !important;
-        color: #f5f1eb !important;
+        background: #ffffff !important;
+        border-color: #dbe2ec !important;
+        color: #111925 !important;
     }
     .stTextInput input:focus {
-        border-color: #ff5a1f !important;
-        box-shadow: 0 0 0 1px #ff5a1f !important;
+        border-color: #166ff7 !important;
+        box-shadow: 0 0 0 1px #166ff7 !important;
     }
     /* Date input styling */
     .stDateInput input {
-        background: #161616 !important;
-        border-color: #2a2a2a !important;
-        color: #f5f1eb !important;
+        background: #ffffff !important;
+        border-color: #dbe2ec !important;
+        color: #111925 !important;
+    }
+    .welcome-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        margin: 0 -3rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        background:
+            radial-gradient(circle at 18% 30%, rgba(224, 248, 255, 0.84), transparent 38%),
+            radial-gradient(circle at 78% 24%, rgba(179, 200, 255, 0.72), transparent 40%),
+            radial-gradient(circle at 58% 78%, rgba(240, 240, 255, 0.9), transparent 42%),
+            #f6f9fe;
+    }
+    .welcome-brand {
+        color: #111925;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    .welcome-brand span { color: #166ff7; }
+    .welcome-copy {
+        color: #455166;
+        font-size: 1.1rem;
+        max-width: 540px;
+        line-height: 1.7;
+    }
+    .welcome-prompt {
+        margin-top: 2rem;
+        padding: 1rem 2rem;
+        background: #111925;
+        border-radius: 999px;
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 700;
+        box-shadow: 0 12px 24px rgba(17, 25, 37, 0.14);
+    }
+    .welcome-note {
+        margin-top: 2.5rem;
+        color: #657184;
+        font-size: 0.75rem;
+        max-width: 520px;
+        line-height: 1.6;
+    }
+    @media (max-width: 700px) {
+        .welcome-hero { margin: 0 -1rem; padding: 2.5rem 1.25rem; }
+        .welcome-brand { font-size: 2.15rem; }
     }
     </style>
     """,
@@ -158,9 +216,20 @@ st.markdown(
 
 def _build_config() -> dict:
     config = DEFAULT_CONFIG.copy()
-    config["llm_provider"] = st.session_state.get("llm_provider", "minimax")
-    config["deep_think_llm"] = st.session_state.get("deep_think_llm", "MiniMax-M2.7")
-    config["quick_think_llm"] = st.session_state.get("quick_think_llm", "MiniMax-M2.7-highspeed")
+    config["quick_think_provider"] = st.session_state.get(
+        "quick_think_provider", config["quick_think_provider"]
+    )
+    config["deep_think_provider"] = st.session_state.get(
+        "deep_think_provider", config["deep_think_provider"]
+    )
+    # llm_provider remains the legacy fallback for callers that only set one provider.
+    config["llm_provider"] = config["quick_think_provider"]
+    config["quick_think_llm"] = st.session_state.get(
+        "quick_think_llm", config["quick_think_llm"]
+    )
+    config["deep_think_llm"] = st.session_state.get(
+        "deep_think_llm", config["deep_think_llm"]
+    )
     # Optional third-party / proxy endpoint. Sidebar input wins, else .env BACKEND_URL.
     backend_url = (st.session_state.get("llm_base_url") or os.getenv("BACKEND_URL") or "").strip()
     config["backend_url"] = backend_url or None
@@ -278,45 +347,19 @@ elif tracker and tracker.error:
 else:
     st.markdown(
         """
-        <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 60vh;
-            text-align: center;
-        ">
+        <div class="welcome-hero">
             <div style="font-size: 4rem; margin-bottom: 1rem;">📈</div>
-            <div style="
-                font-size: 2.5rem;
-                font-weight: 900;
-                margin-bottom: 0.5rem;
-            ">
-                <span style="color: #ff5a1f;">Trading</span><span style="color: #f5f1eb;">Agents</span><span style="color: #f5f1eb;">-</span><span style="color: #ff5a1f;">Astock</span>
+            <div class="welcome-brand">
+                <span>智研</span>A股
             </div>
-            <div style="color: #888; font-size: 1.1rem; max-width: 500px; line-height: 1.6;">
+            <div class="welcome-copy">
                 A股多Agent投研分析系统<br>
                 7位AI分析师 → 质量门控 → 多空辩论 → 风控评估 → 最终决策
             </div>
-            <div style="
-                margin-top: 2rem;
-                padding: 1rem 2rem;
-                border: 1px solid #222;
-                border-radius: 12px;
-                color: #666;
-                font-size: 0.9rem;
-            ">
+            <div class="welcome-prompt">
                 ← 在左侧输入股票代码，开始分析
             </div>
-            <div style="
-                margin-top: 2.5rem;
-                padding: 0.8rem 1.5rem;
-                color: #555;
-                font-size: 0.75rem;
-                max-width: 500px;
-                line-height: 1.6;
-                border-top: 1px solid #1a1a1a;
-            ">
+            <div class="welcome-note">
                 ⚠️ 本项目仅供学习研究与技术演示，不构成任何投资建议。<br>
                 投资决策请咨询持牌专业机构。作者不对使用本工具产生的任何损失承担责任。
             </div>

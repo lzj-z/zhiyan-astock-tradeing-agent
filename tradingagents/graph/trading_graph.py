@@ -151,6 +151,13 @@ def merge_config(config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     merged = DEFAULT_CONFIG.copy()
     if config:
         merged.update(config)
+        # A legacy config that only names ``llm_provider`` must keep routing
+        # both tiers to that provider. New tier-specific keys opt into mixing
+        # vendors deliberately.
+        if "llm_provider" in config:
+            for tier_key in ("quick_think_provider", "deep_think_provider"):
+                if tier_key not in config:
+                    merged[tier_key] = config["llm_provider"]
     return merged
 
 
@@ -232,17 +239,22 @@ class TradingAgentsGraph:
                 f"llm_provider + its own model."
             )
 
-        def _make_client(override_on, sdk_model_key, fallback_model_key):
+        def _make_client(override_on, sdk_model_key, fallback_model_key, provider_key, max_tokens_key):
             """Build a subscription-backed client when overridden, else the normal
             llm_provider client. Fallback rejoins the paid provider on quota/failure."""
+            provider = self.config.get(provider_key) or self.config["llm_provider"]
+            client_kwargs = dict(llm_kwargs)
+            max_tokens = self.config.get(max_tokens_key) or self.config.get("max_tokens")
+            if max_tokens:
+                client_kwargs["max_tokens"] = max_tokens
             if override_on:
                 # backend_url 是为 llm_provider 配的端点。显式指定了**另一家**
                 # provider 做降级时不能把它带过去（例如把 anthropic 降级请求发到
                 # MiniMax 网关），否则同样是撞额度那一刻才炸。None ⇒ 该 provider
                 # 用自己的默认端点。
-                cross_provider = bool(_fb_provider) and _fb_provider != self.config["llm_provider"]
+                cross_provider = bool(_fb_provider) and _fb_provider != provider
                 fallback_spec = {
-                    "provider": _fb_provider or self.config["llm_provider"],
+                    "provider": _fb_provider or provider,
                     "model": _fb_model or self.config[fallback_model_key],
                     "base_url": None if cross_provider else self.config.get("backend_url"),
                     # 带上 callbacks：降级意味着**开始计费**，此时统计/成本回调
@@ -251,8 +263,7 @@ class TradingAgentsGraph:
                     # 用户显式配的输出上限也要带过去。否则撞额度降级之后，降级
                     # provider 用它自己的默认上限，报告照样被截断——而这正是
                     # 用户配 max_tokens 想避免的事（#91）。
-                    **({"max_tokens": self.config["max_tokens"]}
-                       if self.config.get("max_tokens") else {}),
+                    **({"max_tokens": max_tokens} if max_tokens else {}),
                 }
                 return create_llm_client(
                     provider="claude_agent_sdk",
@@ -261,14 +272,20 @@ class TradingAgentsGraph:
                     fallback_spec=fallback_spec,
                 )
             return create_llm_client(
-                provider=self.config["llm_provider"],
+                provider=provider,
                 model=self.config[fallback_model_key],
                 base_url=self.config.get("backend_url"),
-                **llm_kwargs,
+                **client_kwargs,
             )
 
-        deep_client = _make_client(deep_on, "agent_sdk_model", "deep_think_llm")
-        quick_client = _make_client(quick_on, "agent_sdk_quick_model", "quick_think_llm")
+        deep_client = _make_client(
+            deep_on, "agent_sdk_model", "deep_think_llm",
+            "deep_think_provider", "deep_think_max_tokens",
+        )
+        quick_client = _make_client(
+            quick_on, "agent_sdk_quick_model", "quick_think_llm",
+            "quick_think_provider", "quick_think_max_tokens",
+        )
 
         self.deep_thinking_llm = deep_client.get_llm()
         self.quick_thinking_llm = quick_client.get_llm()
