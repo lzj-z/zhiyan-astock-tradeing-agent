@@ -1,53 +1,5 @@
-<p align="center"><b>简体中文</b> | <a href="README_en.md">English</a></p>
 
-<h1 align="center">TradingAgents-Astock</h1>
 
-<p align="center">
-  基于 <a href="https://github.com/TauricResearch/TradingAgents">TauricResearch/TradingAgents</a>（65K ⭐）的 A 股深度特化 fork<br>
-  全 Apache 2.0 开源 · pip install 即跑 · 零外部服务依赖
-</p>
-
-<p align="center">
-  <b>⚠️ 本项目是 <a href="https://arxiv.org/abs/2412.20138">TradingAgents 论文</a>框架的工程实现与研究复现，面向研究与教学。<br>
-  不构成任何投资建议，也不提供任何投资服务。</b>
-</p>
-
-<p align="center">
-  <a href="https://github.com/simonlin1212/tradingagents-astock/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/simonlin1212/tradingagents-astock?style=social"/></a>
-  <a href="https://github.com/simonlin1212/tradingagents-astock/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/simonlin1212/tradingagents-astock?style=social"/></a>
-  <a href="https://arxiv.org/abs/2412.20138"><img alt="论文" src="https://img.shields.io/badge/论文-arXiv_2412.20138-B31B1B?logo=arxiv"/></a>
-  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue"/></a>
-  <a href="./CHANGES_FROM_UPSTREAM.md"><img alt="改动记录" src="https://img.shields.io/badge/改动记录-CHANGES-orange"/></a>
-</p>
-
-<p align="center">
-  <a href="#为什么做这个-fork">为什么做这个 Fork</a> ·
-  <a href="#与上游对比">与上游对比</a> ·
-  <a href="#架构概览">架构概览</a> ·
-  <a href="#7-个-analyst-角色">Analyst 角色</a> ·
-  <a href="#数据源">数据源</a> ·
-  <a href="#快速开始">快速开始</a> ·
-  <a href="#web-ui">Web UI</a> ·
-  <a href="#常见问题排错">排错</a>
-</p>
-
----
-
-## 寻找深圳的 AI 工作机会
-
-作者目前正在寻找深圳的 AI 相关工作机会，重点关注腾讯等大型科技企业及金融机构的 **AI 投研产品、FDE 与 AI 咨询 / 解决方案岗位**。
-
-兼具金融机构从业经历与 AI 产品实战，持续构建金融市场数据工具和多智能体系统，开源项目累计获得 **17K+ GitHub Stars**。
-
-联系：[simonlin0423@gmail.com](mailto:simonlin0423@gmail.com)
-
----
-
-## 为什么做这个 Fork
-
-原版 TradingAgents 是一个出色的多 Agent 投研框架，但它针对美股设计：数据走 Yahoo Finance / Alpha Vantage，分析师不懂 A 股制度，辩论和决策完全面向美股市场。
-
-**本 Fork 的目标**：把 TradingAgents 的多 Agent 辩论架构真正落地到 A 股，不是简单翻译，而是从数据层、Agent 角色、交易规则三个维度做深度特化。
 
 ### 核心改造
 
